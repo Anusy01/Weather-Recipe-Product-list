@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Listing • Filter & Sort</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --accent: #f59e0b;
+      --accent2: #8b5cf6;
+      --text: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1f2937, #020617);
+      color: var(--text);
+      padding: 1rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 1.2rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15,23,42,0.9);
+      border-radius: 18px;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid rgba(148,163,184,0.4);
+      margin-bottom: 1.2rem;
+    }
+
+    .left-controls, .right-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .category-btn {
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: transparent;
+      color: var(--text);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .category-btn.active {
+      background: var(--accent2);
+      border-color: var(--accent2);
+    }
+
+    select {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text);
+      padding: 0.35rem 0.7rem;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    #searchInput {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text);
+      padding: 0.4rem 0.7rem;
+      font-size: 0.8rem;
+      outline: none;
+      min-width: 160px;
+    }
+
+    #searchInput::placeholder {
+      color: #6b7280;
+    }
+
+    /* PRODUCT GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .product {
+      background: var(--card);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #1f2937;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    }
+
+    /* image container */
+    .product-img {
+      height: 130px;
+      overflow: hidden;
+    }
+
+    .product-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-body {
+      padding: 0.7rem 0.9rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .product-category {
+      font-size: 0.75rem;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.2rem;
+      font-size: 0.85rem;
+    }
+
+    .price {
+      color: #facc15;
+      font-weight: 700;
+    }
+
+    .rating {
+      font-size: 0.8rem;
+      color: #fbbf24;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.15);
+      color: #bbf7d0;
+      align-self: flex-start;
+      margin-top: 0.2rem;
+    }
+
+    .no-results {
+      text-align: center;
+      margin-top: 2rem;
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+
+/* SIMPLE NAVBAR ON INNER PAGES */
+.top-nav {
+  background: rgba(15,23,42,0.95);
+  border-bottom: 1px solid rgba(148,163,184,0.4);
+  padding: 0.5rem 1rem;
+}
+
+.top-nav-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.top-nav-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.home-link {
+  text-decoration: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.8);
+  color: #e5e7eb;
+  background: rgba(15,23,42,0.9);
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: 0.2s;
+}
+
+.home-link:hover {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: #020617;
+}
+
+
+  </style>
+</head>
+<body>
+
+<header class="top-nav">
+    <div class="top-nav-inner">
+      <div class="top-nav-title">🛒 Products Page</div>
+      <a href="index.html" class="home-link">🏠 Home</a>
+    </div>
+
+  <div class="container">
+    <h1>Product Listing Page</h1>
+    <p class="subtitle">Filter by category / price and sort by rating ⭐</p>
+
+    <div class="controls">
+      <div class="left-controls">
+        <button class="category-btn active" data-category="all">All</button>
+        <button class="category-btn" data-category="Electronics">Electronics</button>
+        <button class="category-btn" data-category="Clothing">Clothing</button>
+        <button class="category-btn" data-category="Books">Books</button>
+        <button class="category-btn" data-category="Home">Home</button>
+        <button class="category-btn" data-category="Beauty">Beauty</button>
+      </div>
+      <div class="right-controls">
+        <input id="searchInput" type="text" placeholder="Search product..." />
+        <select id="priceFilter">
+          <option value="all">All Prices</option>
+          <option value="0-1000">₹0 - ₹1000</option>
+          <option value="1000-3000">₹1000 - ₹3000</option>
+          <option value="3000-10000">₹3000 - ₹10000</option>
+        </select>
+        <select id="sortBy">
+          <option value="none">Sort: Default</option>
+          <option value="rating-high">Rating: High → Low</option>
+          <option value="rating-low">Rating: Low → High</option>
+          <option value="price-low">Price: Low → High</option>
+          <option value="price-high">Price: High → Low</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="productGrid" class="grid"></div>
+    <p id="noResults" class="no-results" style="display:none;">No products match your filters 🧐</p>
+  </div>
+
+  <script>
+    // Added image property + more products
+    const products = [
+      { id: 1, name: 'Wireless Headphones', category: 'Electronics', price: 2499, rating: 4.5, popular: true,
+        image: 'https://tse1.mm.bing.net/th/id/OIP.pffkzBxxfsboVS88PqLHkwHaG9?rs=1&pid=ImgDetMain&o=7&rm=3' },
+      { id: 2, name: 'Smart Watch', category: 'Electronics', price: 3999, rating: 4.2, popular: false,
+        image: 'https://img.freepik.com/premium-photo/blue-smart-watch-with-time-6-05-screen_902049-22191.jpg' },
+      { id: 3, name: 'Casual T-Shirt', category: 'Clothing', price: 599, rating: 4.1, popular: true,
+        image: 'https://tse1.mm.bing.net/th/id/OIP.2hvYVozgDgoWpUAPoB96YwHaHa?rs=1&pid=ImgDetMain&o=7&rm=3' },
+      { id: 4, name: 'Running Shoes', category: 'Clothing', price: 1999, rating: 4.7, popular: true,
+        image: 'https://tse1.mm.bing.net/th/id/OIP.GXYrMp7_BA_s-1ZpBB5mhwHaE7?w=1000&h=666&rs=1&pid=ImgDetMain&o=7&rm=3' },
+      { id: 5, name: 'JavaScript Basics Book', category: 'Books', price: 499, rating: 4.8, popular: true,
+        image: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1615379189i/57367626.jpg' },
+      { id: 6, name: 'Fiction Novel', category: 'Books', price: 299, rating: 4.0, popular: false,
+        image: 'https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg?auto=compress&cs=tinysrgb&w=600' },
+      { id: 7, name: 'Bluetooth Speaker', category: 'Electronics', price: 1499, rating: 4.3, popular: false,
+        image: 'https://img.freepik.com/photos-premium/discote-haut-parleur-bluetooth-podium_198067-603632.jpg' },  
+      { id: 8, name: 'Formal Shirt', category: 'Clothing', price: 1299, rating: 4.4, popular: false,
+        image: 'https://img.freepik.com/premium-psd/stylish-blue-plaid-shirt-psd-white-background_670382-239068.jpg' },
+      { id: 9, name: 'Noise Cancelling Earbuds', category: 'Electronics', price: 2999, rating: 4.6, popular: true,
+        image: 'https://tse3.mm.bing.net/th/id/OIP._vNK4Zf66J4sNx1pkxg4agHaHa?w=1600&h=1600&rs=1&pid=ImgDetMain&o=7&rm=3' },
+      { id: 10, name: 'Hoodie', category: 'Clothing', price: 899, rating: 4.3, popular: true,
+        image: 'https://images.pexels.com/photos/7671163/pexels-photo-7671163.jpeg?auto=compress&cs=tinysrgb&w=600' },
+      { id: 11, name: 'Data Structures Book', category: 'Books', price: 799, rating: 4.7, popular: true,
+        image: 'https://tse4.mm.bing.net/th/id/OIP.puMxFO4jIIQwIkH-UYMuNwHaJg?rs=1&pid=ImgDetMain&o=7&rm=3' },
+      { id: 12, name: 'Sports Jacket', category: 'Clothing', price: 2199, rating: 4.5, popular: false,
+        image: 'https://tse2.mm.bing.net/th/id/OIP.Jpu-kBKHC4TiWmWdYa_yWQAAAA?w=466&h=580&rs=1&pid=ImgDetMain&o=7&rm=3' },
+      { id: 13, name: 'Gaming Keyboard', category: 'Electronics', price: 1799, rating: 4.5, popular: true,
+        image: 'https://img.freepik.com/premium-photo/view-illuminated-neon-gaming-keyboard-setup-controller_1274789-5650.jpg' },
+      { id: 14, name: 'Denim Jeans', category: 'Clothing', price: 1499, rating: 4.3, popular: false,
+        image: 'https://img.freepik.com/free-photo/jeans_1203-8093.jpg?t=st=1712808902~exp=1712812502~hmac=c18273edfc61e8d07472376e4b58367a6b579973d0329ccd53add7cad36f8009' },
+      { id: 15, name: 'Wireless Mouse', category: 'Electronics', price: 699, rating: 4.6, popular: true,
+        image: 'https://img.freepik.com/premium-psd/wireless-mouse-mockup-isometric-left-view_1332-8703.jpg?w=2000' },
+      { id: 16, name: 'Stylish Kurti', category: 'Clothing', price: 999, rating: 4.5, popular: true,
+        image: 'https://img.freepik.com/premium-photo/women-fashion-clothing-tops_953724-1138.jpg' },
+      { id: 17, name: 'Travel Backpack', category: 'Clothing', price: 1999, rating: 4.7, popular: true,
+        image: 'https://img.freepik.com/premium-photo/generative-ai-realistic-3d-rendering-brown-khaki-large-traveler-backpack-placed-against-white-background_501669-25659.jpg' },
+      { id: 18, name: 'Romance Novel', category: 'Books', price: 399, rating: 4.4, popular: false,
+        image: 'https://img.freepik.com/premium-photo/open-book-with-red-hearts_487677-24733.jpg' },
+      { id: 19, name: 'Wireless Charger', category: 'Electronics', price: 1299, rating: 4.2, popular: false,
+        image: 'https://tse3.mm.bing.net/th/id/OIP.bLZ7QUuSAI1eSotMDYrmlgHaE7?pid=ImgDet&w=178&h=118&c=7&dpr=1.5&o=7&rm=3' },
+      { id: 20, name: 'Sports Watch', category: 'Electronics', price: 2499, rating: 4.8, popular: true,
+        image: 'https://img.freepik.com/premium-psd/beautiful-outdoor-sports-watches-png-isolated-transparent-background_645927-8955.jpg' },
+      { id: 21, name: 'Formal Shoes', category: 'Clothing', price: 2199, rating: 4.5, popular: true,
+        image: 'https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=600' },
+      { id: 22, name: 'Cookbook', category: 'Books', price: 599, rating: 4.6, popular: true,
+        image: 'https://img.freepik.com/premium-photo/book-titled-cookbook-cookbook_1032785-19922.jpg' },
+      { id: 23, name: 'Laptop', category: 'Electronics', price: 45999, rating: 4.7, popular: true,
+        image: 'https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600' },
+      { id: 24, name: 'Power Bank', category: 'Electronics', price: 1299, rating: 4.4, popular: true,
+        image: 'https://img.freepik.com/premium-psd/power-bank-mockup_1281773-45.jpg?semt=ais_hybrid' },
+{ id: 25, name: "Women's Kurti", category: 'Clothing', price: 799, rating: 4.5, popular: true,
+  image: 'https://tse4.mm.bing.net/th/id/OIP.6NIRuPHa0UGwD_SQQG7DJQAAAA?rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 26, name: "Men's Jeans", category: 'Clothing', price: 1499, rating: 4.3, popular: false,
+  image: 'https://img.freepik.com/premium-photo/topdown-view-men-s-solid-blue-jeans_789916-2108.jpg' },
+{ id: 27, name: 'Fantasy Novel', category: 'Books', price: 399, rating: 4.6, popular: true,
+  image: 'https://img.freepik.com/premium-photo/book-mockup_849761-64134.jpg' },
+{ id: 28, name: 'Earphones', category: 'Electronics', price: 699, rating: 4.2, popular: false,
+  image: 'https://img.freepik.com/3d-models/ONREAMPI-earphones-002/earphones-002-uv.png?t=st=1704416223~exp=1704416823~hmac=370644ca3085bf5468458af26becf0c7dcf92dc7b4dcffb05ede70e7a254008e' },
+{ id: 29, name: 'Mobile Cover', category: 'Electronics', price: 1699, rating: 4.5, popular: true,
+  image: 'https://i.etsystatic.com/19693822/r/il/2c131a/2208219095/il_1080xN.2208219095_o195.jpg' },
+{ id: 30, name: 'Perfume', category: 'Clothing', price: 999, rating: 4.4, popular: true,
+  image: 'https://images.pexels.com/photos/965989/pexels-photo-965989.jpeg?auto=compress&cs=tinysrgb&w=600' },
+{ id: 31, name: 'Water Bottle', category: 'Home', price: 299, rating: 4.3, popular: false,
+  image: 'https://img.freepik.com/free-photo/photorealistic-water-bottles_23-2151049024.jpg?size=626&ext=jpg' },
+{ id: 32, name: 'Electric Kettle', category: 'Home', price: 1199, rating: 4.4, popular: true,
+  image: 'https://tse1.mm.bing.net/th/id/OIP.Kf-tjGPukFzRillKFFmrpwHaE7?rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 33, name: 'Non-stick Frying Pan', category: 'Home', price: 899, rating: 4.5, popular: true,
+  image: 'https://img.freepik.com/premium-photo/big-frying-pan-table_870072-2603.jpg' },
+{ id: 34, name: 'Dining Plate Set', category: 'Home', price: 1599, rating: 4.3, popular: false,
+  image: 'https://img.freepik.com/premium-photo/vintage-brass-cutlery-set-antique-dining-table_171965-24287.jpg' },
+{ id: 35, name: 'LED Desk Lamp', category: 'Home', price: 1299, rating: 4.6, popular: true,
+  image: 'https://m.media-amazon.com/images/I/61wOrELntLL._AC_SL1500_.jpg' },
+{ id: 36, name: 'Cushion Set', category: 'Home', price: 849, rating: 4.2, popular: false,
+  image: 'https://images.pexels.com/photos/276684/pexels-photo-276684.jpeg?auto=compress&cs=tinysrgb&w=600' },
+{ id: 37, name: 'Flower Vase Decor', category: 'Home', price: 699, rating: 4.5, popular: true,
+  image: 'https://img.freepik.com/premium-photo/stilllife-decorative-brass-vase-plastic-flowers_1029622-2596.jpg' },
+{ id: 38, name: 'Steel Water Jug', category: 'Home', price: 1199, rating: 4.4, popular: false,
+  image: 'https://m.media-amazon.com/images/I/516mgJOhm2L.jpg' },
+{ id: 39, name: 'Laundry Basket', category: 'Home', price: 599, rating: 4.1, popular: false,
+  image: 'https://img.freepik.com/premium-photo/beautiful-white-laundry-hamper-with-hole-isolated-white-background_94628-23363.jpg' },
+{ id: 40, name: 'Ceramic Mug', category: 'Home', price: 349, rating: 4.3, popular: true,
+  image: 'https://img.freepik.com/premium-photo/row-colorful-mugs-table-with-one-that-says-word-it_865967-625464.jpg' },
+{ id: 41, name: 'Wall Clock', category: 'Home', price: 799, rating: 4.6, popular: true,
+  image: 'https://img.freepik.com/premium-photo/wall-clock-time-white-background_1128603-27174.jpg' },
+{ id: 42, name: 'Lipstick Matte Finish', category: 'Beauty', price: 499, rating: 4.5, popular: true,
+  image: 'https://img.freepik.com/premium-photo/lipsticks-row-beige-background-closeup_326533-7673.jpg' },
+{ id: 43, name: 'Face Moisturizer', category: 'Beauty', price: 599, rating: 4.6, popular: true,
+  image: 'https://img.freepik.com/premium-photo/glass-cosmetic-jar-skin-face-care-moisturizer-cream-forest-green-plants-eco-beauty-treatment_124463-16837.jpg' },
+{ id: 44, name: 'Hair Serum', category: 'Beauty', price: 349, rating: 4.3, popular: false,
+  image: 'https://tse4.mm.bing.net/th/id/OIP.kQ6NZA-lh8BsmJHzrQ03pwHaHa?rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 45, name: 'Kajal', category: 'Beauty', price: 899, rating: 4.4, popular: true,
+  image: 'https://tse1.mm.bing.net/th/id/OIP.yLxxNyW5rZvY6bduvntDKwHaEJ?rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 46, name: 'Face Wash', category: 'Beauty', price: 299, rating: 4.2, popular: false,
+  image: 'https://img.freepik.com/premium-psd/psd-face-wash-realistic-mockup_243400-280.jpg?w=2000' },
+{ id: 47, name: 'Foundation Liquid', category: 'Beauty', price: 749, rating: 4.7, popular: true,
+  image: 'https://tse1.explicit.bing.net/th/id/OIP.BBUBmAje22iFF9fTdGC9dQHaE4?rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 48, name: 'Makeup Brush Set', category: 'Beauty', price: 999, rating: 4.8, popular: true,
+  image: 'https://img.freepik.com/premium-vector/realistic-professional-cosmetics-brush-set_124507-4372.jpg' },
+{ id: 49, name: 'Nail Polish Set', category: 'Beauty', price: 299, rating: 4.1, popular: false,
+  image: 'https://tse3.mm.bing.net/th/id/OIP.kf8I94NhWVvSHoq9KqzKtgHaEJ?w=1749&h=980&rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 50, name: 'Aloe Vera Gel', category: 'Beauty', price: 249, rating: 4.4, popular: true,
+  image: 'https://img.freepik.com/premium-photo/aloe-vera-gel-with-aloe-sliced_1339-73855.jpg' },
+{ id: 51, name: 'Sunscreen SPF 50', category: 'Beauty', price: 649, rating: 4.6, popular: true,
+  image: 'https://img.freepik.com/free-vector/sunscreen-cream-bottle-tube-with-yellow-cap_107791-30370.jpg' },
+{ id: 52, name: 'Body Lotion', category: 'Beauty', price: 649, rating: 4.6, popular: true,
+  image: 'https://img.freepik.com/free-vector/cosmetic-realistic-vector-with-cream_107791-5.jpg' },
+{ id: 53, name: 'Makeup Sponge Blender', category: 'Beauty', price: 199, rating: 4.3, popular: false,
+  image: 'https://img.freepik.com/premium-photo/makeup-accessories-cosmetic-tools-makeup-sponges-beauty-blender-with-copy-space_73253-1591.jpg' },
+{ id: 54, name: 'Soft Blanket', category: 'Home', price: 1499, rating: 4.6, popular: true,
+  image: 'https://tse2.mm.bing.net/th/id/OIP.eKtfVxkcRpYwcqs5Xee3oQHaEP?rs=1&pid=ImgDetMain&o=7&rm=3' },
+{ id: 55, name: 'Self-Help Motivation Book', category: 'Books', price: 349, rating: 4.6, popular: true,
+  image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/self-help-motivation-book-adventure-book-cloc-design-template-b5e0897514cc7357c7c11216604e1884_screen.jpg?ts=1712955639' },
+{ id: 56, name: 'Science Fiction Adventure', category: 'Books', price: 499, rating: 4.4, popular: false,
+  image: 'https://img.freepik.com/premium-photo/imagination-concept-open-magic-book-ai-generated_995428-8803.jpg' },
+
+];
+
+    const productGrid = document.getElementById('productGrid');
+    const noResults = document.getElementById('noResults');
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    const priceFilter = document.getElementById('priceFilter');
+    const sortBy = document.getElementById('sortBy');
+    const searchInput = document.getElementById('searchInput');
+
+    let currentCategory = 'all';
+
+    function renderProducts(list) {
+      productGrid.innerHTML = '';
+
+      if (!list.length) {
+        noResults.style.display = 'block';
+        return;
+      }
+      noResults.style.display = 'none';
+
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product';
+        card.innerHTML = `
+          <div class="product-img">
+            <img src="${p.image}" alt="${p.name}">
+          </div>
+          <div class="product-body">
+            <div class="product-category">${p.category}</div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-meta">
+              <span class="price">₹${p.price}</span>
+              <span class="rating">⭐ ${p.rating}</span>
+            </div>
+            ${p.popular ? '<div class="tag">Popular</div>' : ''}
+          </div>
+        `;
+        productGrid.appendChild(card);
+      });
+    }
+
+    function filterProducts() {
+      const searchTerm = searchInput.value.toLowerCase();
+
+      let filtered = products.filter(p => {
+        // Category filter
+        if (currentCategory !== 'all' && p.category !== currentCategory) return false;
+
+        // Price filter
+        const priceVal = priceFilter.value;
+        if (priceVal !== 'all') {
+          const [min, max] = priceVal.split('-').map(Number);
+          if (p.price < min || p.price > max) return false;
+        }
+
+        // Search filter
+        if (!p.name.toLowerCase().includes(searchTerm)) return false;
+
+        return true;
+      });
+
+      // Sorting
+      const sortVal = sortBy.value;
+      if (sortVal === 'rating-high') {
+        filtered.sort((a, b) => b.rating - a.rating);
+      } else if (sortVal === 'rating-low') {
+        filtered.sort((a, b) => a.rating - b.rating);
+      } else if (sortVal === 'price-low') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortVal === 'price-high') {
+        filtered.sort((a, b) => b.price - a.price);
+      }
+
+      renderProducts(filtered);
+    }
+
+    categoryButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.category;
+        filterProducts();
+      });
+    });
+
+    priceFilter.addEventListener('change', filterProducts);
+    sortBy.addEventListener('change', filterProducts);
+    searchInput.addEventListener('input', filterProducts);
+
+    // Initial render
+    renderProducts(products);
+  </script>
+</body>
+</html>

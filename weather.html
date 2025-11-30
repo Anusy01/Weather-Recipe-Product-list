@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather App • API</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --accent: #3b82f6;
+      --text: #e5e7eb;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1e293b, #1e2856);
+      color: var(--text);
+    }
+
+    /* NAVBAR */
+    .top-nav {
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 0.55rem 1rem;
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-inner {
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .home-link {
+      text-decoration: none;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .home-link:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #020617;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 420px;
+      margin: 2rem auto;
+      background: var(--card);
+      padding: 1.4rem 1.6rem;
+      border-radius: 22px;
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 1.3rem;
+    }
+
+    /* SEARCH BAR */
+    .search-box {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    #cityInput {
+      flex: 1;
+      padding: 0.45rem 0.8rem;
+      border-radius: 12px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    #cityInput::placeholder {
+      color: #6b7280;
+    }
+
+    #searchBtn {
+      padding: 0.45rem 0.9rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #fff;
+      transition: 0.25s;
+      white-space: nowrap;
+    }
+
+    #searchBtn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* WEATHER DETAILS */
+    .weather {
+      display: none; /* hide until search */
+      margin-top: 1.3rem;
+    }
+
+    .icon img {
+      width: 120px;
+    }
+
+    .temp {
+      font-size: 2.3rem;
+      margin: 0.3rem 0;
+    }
+
+    .city {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .details {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 0.7rem;
+      border-radius: 12px;
+      margin-top: 0.6rem;
+    }
+
+    .details div {
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    .error {
+      margin-top: 0.8rem;
+      color: #f87171;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .api-msg {
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      min-height: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="top-nav">
+    <div class="nav-inner">
+      <div>🌦️ Weather App</div>
+      <a href="index.html" class="home-link">🏠 Home</a>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <div class="container">
+    <h1>Weather Finder</h1>
+    <p class="subtitle">Search any city to see live weather updates 🌍</p>
+
+    <!-- SEARCH BAR -->
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Enter city (e.g. Bengaluru)" />
+      <button id="searchBtn">Search</button>
+    </div>
+
+    <p class="error" id="errorMsg">❌ City not found. Try another.</p>
+    <p class="api-msg" id="apiMsg"></p>
+
+    <!-- RESULTS -->
+    <div class="weather" id="weatherBox">
+      <div class="icon">
+        <img id="weatherIcon" alt="Weather icon" />
+      </div>
+
+      <div class="temp" id="tempText"></div>
+      <div class="city" id="cityText"></div>
+
+      <div class="details">
+        <div>
+          <strong>🌡 Temp</strong>
+          <div id="tempDetail"></div>
+        </div>
+
+        <div>
+          <strong>💧 Humidity</strong>
+          <div id="humidity"></div>
+        </div>
+
+        <div>
+          <strong>🍃 Wind</strong>
+          <div id="wind"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT AT END OF BODY -->
+  <script>
+    // 🔑 Put YOUR key here:
+    const apiKey = "8e6e87e4b8366db9734d6defcdab8b23";
+
+    const searchBtn = document.getElementById("searchBtn");
+    const cityInput = document.getElementById("cityInput");
+    const weatherBox = document.getElementById("weatherBox");
+    const errorMsg = document.getElementById("errorMsg");
+    const apiMsg = document.getElementById("apiMsg");
+
+    async function getWeather(city) {
+      if (!city) {
+        errorMsg.textContent = "⚠️ Please enter a city name.";
+        errorMsg.style.display = "block";
+        weatherBox.style.display = "none";
+        apiMsg.textContent = "";
+        return;
+      }
+
+      const url =
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+          city
+        )}&appid=${apiKey}&units=metric`;
+
+      try {
+        apiMsg.textContent = "Contacting weather API...";
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // For debugging:
+        // console.log(res.status, data);
+
+        if (!res.ok) {
+          // Show server message if available
+          errorMsg.textContent = "❌ " + (data.message || "Error fetching weather");
+          errorMsg.style.display = "block";
+          weatherBox.style.display = "none";
+          apiMsg.textContent = `API status: ${res.status}`;
+          return;
+        }
+
+        errorMsg.style.display = "none";
+        apiMsg.textContent = "";
+
+        weatherBox.style.display = "block";
+
+        document.getElementById("cityText").textContent =
+          data.name + ", " + data.sys.country;
+
+        document.getElementById("tempText").textContent =
+          Math.round(data.main.temp) + "°C";
+
+        document.getElementById("tempDetail").textContent =
+          Math.round(data.main.temp_min) + "° ~ " +
+          Math.round(data.main.temp_max) + "°";
+
+        document.getElementById("humidity").textContent =
+          data.main.humidity + "%";
+
+        document.getElementById("wind").textContent =
+          data.wind.speed + " m/s";
+
+        document.getElementById("weatherIcon").src =
+          `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "⚠️ Network error. Check your internet connection.";
+        errorMsg.style.display = "block";
+        weatherBox.style.display = "none";
+        apiMsg.textContent = "";
+      }
+    }
+
+    // Search on button click
+    searchBtn.addEventListener("click", () => {
+      getWeather(cityInput.value.trim());
+    });
+
+    // Search on Enter key
+    cityInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        getWeather(cityInput.value.trim());
+      }
+    });
+  </script>
+</body>
+</html>

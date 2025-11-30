@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dark Centered To-Do App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #2a345d;
+      --card: #111729;
+      --border: #1e293b;
+      --text: #e5e7eb;
+      --sub: #9ca3af;
+      --accent: #6366f1;
+      --accent2: #a855f7;
+      --danger: #f87171;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* FULL SCREEN CENTER LAYOUT */
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at top, #201d4d, #1f2749);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      color: var(--text);
+    }
+
+    /* NAVBAR */
+    .top-nav {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  pointer-events: auto;
+}
+
+
+    .home-link {
+      pointer-events: auto;
+      background: rgba(255,255,255,0.1);
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3);
+      text-decoration: none;
+      color: white;
+      backdrop-filter: blur(8px);
+      transition: 0.2s;
+    }
+
+    .home-link:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #111;
+    }
+
+    /* MAIN CARD */
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(46, 63, 112, 0.92);
+      border-radius: 20px;
+      padding: 1.5rem;
+      border: 1px solid #263040;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.7);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--sub);
+      margin-bottom: 1.2rem;
+    }
+
+    /* INPUTS */
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.7rem;
+    }
+
+    input, textarea {
+      background: #0d1536;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+      font-size: 0.9rem;
+      outline: none;
+      width: 100%;
+      transition: 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    #taskTitle { flex: 1; }
+
+    #taskText {
+      resize: vertical;
+      min-height: 60px;
+      margin-bottom: 0.7rem;
+    }
+
+    /* ADD BUTTON */
+    #addBtn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    #addBtn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* FILTERS */
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .pill {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--sub);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .pill.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    #clearAll {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid #fca5a5;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    #clearAll:hover {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* TASK LIST */
+    ul {
+      list-style: none;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .task {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #263040;
+      border-radius: 14px;
+      padding: 0.6rem;
+      margin-bottom: 0.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .task.completed {
+      opacity: 0.7;
+      border-color: #22c55e;
+    }
+
+    .task-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .task-text {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    .task-time {
+      font-size: 0.7rem;
+      color: #818da7;
+      margin-top: 0.2rem;
+    }
+
+    /* TASK ACTION BUTTONS */
+    .task-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .small-btn {
+      padding: 0.2rem 0.4rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-done {
+      background: rgba(34,197,94,0.2);
+      color: #86efac;
+      border: 1px solid #22c55e;
+    }
+
+    .btn-delete {
+      background: rgba(239,68,68,0.2);
+      color: #fecaca;
+      border: 1px solid #ef4444;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- CENTER NAV -->
+<div class="top-nav">
+  <a href="index.html" class="home-link">🏠 Home</a>
+</div>
+
+<!-- MAIN TO-DO APP -->
+<div class="app">
+  <h1>To-Do / Notes</h1>
+  <p class="subtitle">Tasks are saved automatically 🧠</p>
+
+  <div class="input-row">
+    <input id="taskTitle" type="text" placeholder="Task title…" />
+    <button id="addBtn">+ Add</button>
+  </div>
+
+  <textarea id="taskText" placeholder="Details / notes…"></textarea>
+
+  <div class="filter-row">
+    <div>
+      <button class="pill active" data-filter="all">All</button>
+      <button class="pill" data-filter="active">Active</button>
+      <button class="pill" data-filter="completed">Completed</button>
+    </div>
+    <button id="clearAll">Clear All</button>
+  </div>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+  const titleInput = document.getElementById("taskTitle");
+  const textInput = document.getElementById("taskText");
+  const addBtn = document.getElementById("addBtn");
+  const list = document.getElementById("taskList");
+  const filters = document.querySelectorAll(".pill");
+  const clearAll = document.getElementById("clearAll");
+
+  let tasks = [];
+
+  function load() {
+    tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+    render();
+  }
+
+  function save() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function addTask(event) {
+    // If triggered by Enter key or button, avoid accidental form behavior
+    if (event) event.preventDefault();
+
+    if (!titleInput.value.trim() && !textInput.value.trim()) return;
+
+    tasks.unshift({
+      id: Date.now(),
+      title: titleInput.value.trim(),
+      text: textInput.value.trim(),
+      done: false,
+      time: new Date().toLocaleString()
+    });
+
+    save();
+    render();
+    titleInput.value = "";
+    textInput.value = "";
+  }
+
+  function toggle(id) {
+    tasks = tasks.map(t =>
+      t.id === id ? { ...t, done: !t.done } : t
+    );
+    save();
+    render();
+  }
+
+  function remove(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    save();
+    render();
+  }
+
+  function currentFilter() {
+    const active = document.querySelector(".pill.active");
+    return active ? active.dataset.filter : "all";
+  }
+
+  function render() {
+    list.innerHTML = "";
+    let f = currentFilter();
+
+    let filtered = tasks;
+    if (f === "active") filtered = tasks.filter(t => !t.done);
+    if (f === "completed") filtered = tasks.filter(t => t.done);
+
+    if (!filtered.length) {
+      list.innerHTML = `<li style="text-align:center;padding:0.8rem;color:#94a3b8;">No tasks yet</li>`;
+      return;
+    }
+
+    filtered.forEach(t => {
+      const li = document.createElement("li");
+      li.className = `task ${t.done ? "completed" : ""}`;
+      li.innerHTML = `
+        <input type="checkbox" ${t.done ? "checked" : ""}>
+        <div>
+          <div class="task-title">${t.title || "(No title)"}</div>
+          ${t.text ? `<div class="task-text">${t.text}</div>` : ""}
+          <div class="task-time">${t.time}</div>
+        </div>
+        <div class="task-actions">
+          <button class="small-btn btn-done">${t.done ? "Undo" : "Done"}</button>
+          <button class="small-btn btn-delete">Delete</button>
+        </div>
+      `;
+
+      li.querySelector("input").onclick = () => toggle(t.id);
+      li.querySelector(".btn-done").onclick = () => toggle(t.id);
+      li.querySelector(".btn-delete").onclick = () => remove(t.id);
+
+      list.appendChild(li);
+    });
+  }
+
+  // EVENTS
+  addBtn.addEventListener("click", addTask);
+
+  // Press Enter in title field to add task
+  titleInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addTask();
+    }
+  });
+
+  filters.forEach(btn => {
+    btn.onclick = () => {
+      filters.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      render();
+    };
+  });
+
+  clearAll.onclick = () => {
+    if (confirm("Clear all tasks?")) {
+      tasks = [];
+      save();
+      render();
+    }
+  };
+
+  // INITIAL LOAD
+  load();
+</script>
+
+</body>
+</html>

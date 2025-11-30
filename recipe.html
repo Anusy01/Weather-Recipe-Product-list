@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recipe Finder • API Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --accent: #f97316;
+      --accent2: #22c55e;
+      --accent3: #6366f1;
+      --text: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1e293b, #182255);
+      color: var(--text);
+    }
+
+    /* TOP NAV (Home) */
+    .top-nav {
+      background: rgba(15,23,42,0.96);
+      border-bottom: 1px solid rgba(148,163,184,0.4);
+      padding: 0.55rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .top-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .top-nav-title {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .home-link {
+      text-decoration: none;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.9);
+      color: #e5e7eb;
+      background: rgba(15,23,42,0.9);
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: 0.2s;
+    }
+
+    .home-link:hover {
+      background: var(--accent3);
+      border-color: var(--accent3);
+      color: #020617;
+    }
+
+    /* PAGE LAYOUT */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.3rem 1rem 2rem;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      margin-bottom: 0.3rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      text-align: center;
+      color: #9ca3af;
+      margin-bottom: 1.2rem;
+    }
+
+    /* SEARCH BAR */
+    .search-area {
+      background: rgba(15,23,42,0.95);
+      border-radius: 18px;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid rgba(148,163,184,0.45);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.7);
+      margin-bottom: 1.4rem;
+    }
+
+    .search-input-group {
+      flex: 1;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      min-width: 220px;
+    }
+
+    #searchInput {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text);
+      padding: 0.45rem 0.75rem;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    #searchInput::placeholder {
+      color: #6b7280;
+    }
+
+    #searchBtn, #randomBtn {
+      border-radius: 999px;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: 0.25s;
+      white-space: nowrap;
+    }
+
+    #searchBtn {
+      background: linear-gradient(135deg, var(--accent3), #a855f7);
+      color: #f9fafb;
+      box-shadow: 0 6px 16px rgba(15,23,42,0.9);
+    }
+
+    #randomBtn {
+      background: transparent;
+      border: 1px solid #4b5563;
+      color: #e5e7eb;
+    }
+
+    #searchBtn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.9);
+    }
+
+    #randomBtn:hover {
+      background: rgba(56,189,248,0.12);
+      border-color: #38bdf8;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    /* GRID + DETAILS LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.5fr);
+      gap: 1.1rem;
+      align-items: flex-start;
+    }
+
+    /* RESULTS GRID */
+    .results {
+      background: rgba(31, 49, 91, 0.95);
+      border-radius: 18px;
+      padding: 0.8rem 0.9rem;
+      border: 1px solid rgba(148,163,184,0.35);
+      max-height: 460px;
+      overflow-y: auto;
+    }
+
+    .results-title {
+      font-size: 0.95rem;
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .results-count {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.4rem;
+    }
+
+    .recipe-card {
+      background: #020617;
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid #1f2937;
+      transition: 0.22s;
+      display: flex;
+      flex-direction: column;
+      min-height: 170px;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent3);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+    }
+
+    .recipe-thumb {
+      height: 90px;
+      overflow: hidden;
+    }
+
+    .recipe-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .recipe-info {
+      padding: 0.5rem 0.6rem 0.55rem;
+      font-size: 0.8rem;
+    }
+
+    .recipe-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+
+    .recipe-meta {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .no-results {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-top: 1.2rem;
+    }
+
+    /* DETAILS PANEL */
+    .details {
+      background: rgba(15,23,42,0.97);
+      border-radius: 18px;
+      padding: 0.9rem 1rem;
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.8);
+      min-height: 240px;
+    }
+
+    .details-header {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      margin-bottom: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .details-img {
+      width: 130px;
+      height: 130px;
+      border-radius: 18px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .details-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .details-main h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .details-tags {
+      font-size: 0.78rem;
+      color: #9ca3af;
+      margin-bottom: 0.3rem;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.15);
+      border: 1px solid rgba(56,189,248,0.5);
+    }
+
+    .details-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+      gap: 0.8rem;
+      margin-top: 0.6rem;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .ingredients-list {
+      list-style: disc;
+      padding-left: 1.1rem;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      max-height: 130px;
+      overflow-y: auto;
+    }
+
+    .ingredients-list li {
+      margin-bottom: 0.2rem;
+    }
+
+    .steps {
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .nutrition-box {
+      margin-top: 0.4rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 10px;
+      background: rgba(22,163,74,0.13);
+      border: 1px solid rgba(22,163,74,0.5);
+      font-size: 0.78rem;
+      color: #bbf7d0;
+    }
+
+    .placeholder-text {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 0.4rem;
+    }
+
+    .details-empty {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-top: 1.5rem;
+    }
+
+    /* SCROLLBARS */
+    .results::-webkit-scrollbar,
+    .ingredients-list::-webkit-scrollbar,
+    .steps::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .results::-webkit-scrollbar-thumb,
+    .ingredients-list::-webkit-scrollbar-thumb,
+    .steps::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 999px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .details-body {
+        grid-template-columns: 1fr;
+      }
+      .details-img {
+        width: 110px;
+        height: 110px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <header class="top-nav">
+    <div class="top-nav-inner">
+      <div class="top-nav-title">🍽️ Recipe Finder (API)</div>
+      <a href="index.html" class="home-link">🏠 Home</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>Recipe Finder</h1>
+    <p class="subtitle">
+      Search for recipes by dish name. Click a recipe to view ingredients, steps, and basic info.
+    </p>
+
+    <!-- SEARCH BAR -->
+    <div class="search-area">
+      <div class="search-input-group">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search recipe (e.g. Pasta, Chicken, Curry)..." />
+        <button id="searchBtn">🔍 Search</button>
+      </div>
+      <button id="randomBtn">🎲 Random Recipe</button>
+      <span class="hint">Tip: Try words like "chicken", "egg", "rice", "fish"...</span>
+    </div>
+
+    <!-- RESULTS + DETAILS -->
+    <div class="layout">
+      <!-- LEFT: RESULTS LIST -->
+      <div class="results" id="resultsPanel">
+        <div class="results-title">
+          <span>Results</span>
+          <span id="resultsCount" class="results-count"></span>
+        </div>
+        <div id="resultsGrid" class="grid"></div>
+        <p id="noResults" class="no-results" style="display:none;">No recipes found. Try another search 🙂</p>
+      </div>
+
+      <!-- RIGHT: DETAILS PANEL -->
+      <div class="details" id="detailsPanel">
+        <div id="detailsContent">
+          <p class="details-empty">
+            🔎 Select a recipe from the left to see full details here.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const randomBtn = document.getElementById('randomBtn');
+    const resultsGrid = document.getElementById('resultsGrid');
+    const resultsCount = document.getElementById('resultsCount');
+    const noResults = document.getElementById('noResults');
+    const detailsContent = document.getElementById('detailsContent');
+
+    // Search recipes from TheMealDB
+    async function searchRecipes(query) {
+      if (!query) return;
+      try {
+        resultsGrid.innerHTML = '';
+        resultsCount.textContent = 'Searching...';
+        noResults.style.display = 'none';
+
+        const res = await fetch(
+          'https://www.themealdb.com/api/json/v1/1/search.php?s=' + encodeURIComponent(query)
+        );
+        const data = await res.json();
+        const meals = data.meals;
+
+        if (!meals) {
+          resultsGrid.innerHTML = '';
+          resultsCount.textContent = '';
+          noResults.style.display = 'block';
+          return;
+        }
+
+        renderResults(meals);
+      } catch (e) {
+        console.error(e);
+        resultsGrid.innerHTML = '';
+        resultsCount.textContent = '';
+        noResults.textContent = 'Something went wrong. Please try again.';
+        noResults.style.display = 'block';
+      }
+    }
+
+    // Get random recipe
+    async function fetchRandomRecipe() {
+      try {
+        resultsGrid.innerHTML = '';
+        resultsCount.textContent = 'Loading random recipe...';
+        noResults.style.display = 'none';
+
+        const res = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
+        const data = await res.json();
+        const meals = data.meals;
+        if (!meals) return;
+        renderResults(meals);
+        showRecipeDetails(meals[0]); // show the random recipe details directly
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderResults(meals) {
+      resultsGrid.innerHTML = '';
+      resultsCount.textContent = meals.length + ' recipe(s)';
+
+      meals.forEach(meal => {
+        const card = document.createElement('div');
+        card.className = 'recipe-card';
+
+        card.innerHTML = `
+          <div class="recipe-thumb">
+            <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+          </div>
+          <div class="recipe-info">
+            <div class="recipe-name">${meal.strMeal}</div>
+            <div class="recipe-meta">
+              ${meal.strCategory || ''} · ${meal.strArea || ''}
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => showRecipeDetails(meal));
+        resultsGrid.appendChild(card);
+      });
+    }
+
+    function showRecipeDetails(meal) {
+      // Build ingredients list from strIngredient1..20
+      const ingredients = [];
+      for (let i = 1; i <= 20; i++) {
+        const ing = meal['strIngredient' + i];
+        const measure = meal['strMeasure' + i];
+        if (ing && ing.trim() !== '') {
+          ingredients.push(`${measure ? measure : ''} ${ing}`.trim());
+        }
+      }
+
+      const tags = meal.strTags ? meal.strTags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+      detailsContent.innerHTML = `
+        <div class="details-header">
+          <div class="details-img">
+            <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+          </div>
+          <div class="details-main">
+            <h2>${meal.strMeal}</h2>
+            <div class="details-tags">
+              <strong>Category:</strong> ${meal.strCategory || '—'} ·
+              <strong>Cuisine:</strong> ${meal.strArea || '—'}
+            </div>
+            <div class="badge-row">
+              ${tags.map(tag => `<span class="badge">#${tag}</span>`).join('')}
+            </div>
+            <div class="nutrition-box">
+              <strong>Nutrition / Info:</strong><br>
+              Detailed calories are not provided by this API, but you can mention:
+              <em>“Rich in ${meal.strCategory || 'ingredients'} and typical of ${meal.strArea || 'global'} cuisine.”</em>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-body">
+          <div>
+            <div class="section-title">🧾 Ingredients</div>
+            ${
+              ingredients.length
+                ? `<ul class="ingredients-list">
+                    ${ingredients.map(i => `<li>${i}</li>`).join('')}
+                   </ul>`
+                : '<p class="placeholder-text">No ingredients available.</p>'
+            }
+          </div>
+          <div>
+            <div class="section-title">👩‍🍳 Steps</div>
+            <div class="steps">
+              ${meal.strInstructions ? meal.strInstructions : 'No instructions available.'}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // EVENTS
+    searchBtn.addEventListener('click', () => {
+      const q = searchInput.value.trim();
+      searchRecipes(q);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const q = searchInput.value.trim();
+        searchRecipes(q);
+      }
+    });
+
+    randomBtn.addEventListener('click', fetchRandomRecipe);
+
+    // Optional: initial default search
+    searchRecipes('chicken');
+  </script>
+</body>
+</html>
